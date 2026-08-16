@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         {
             text: "On all your wasted cryin'",
-            duration: 2200
+            duration: 1900
         },
 
         {
