@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         {
             text: "I know I can treat you better",
-            duration: 2500
+            duration: 2700
         },
 
         {
