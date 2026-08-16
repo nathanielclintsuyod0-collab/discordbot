@@ -1,4 +1,6 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", function () {
+
+    console.log("BetterCalc JS loaded!");
 
     const result = document.getElementById("result");
     const expression = document.getElementById("expression");
@@ -12,10 +14,6 @@ document.addEventListener("DOMContentLoaded", () => {
     let lyricTimer = null;
     let lyricIndex = 0;
 
-    // ==============================
-    // LYRICS
-    // ==============================
-
     const lyrics = [
         "Tell me, why are we wasting time",
         "On all your wasted cryin'",
@@ -24,83 +22,111 @@ document.addEventListener("DOMContentLoaded", () => {
         "Better than he can"
     ];
 
-    // Lower = faster
+    // Change this to make lyrics faster/slower.
+    // 500 = 0.5 seconds per line
     const lyricSpeed = 500;
 
 
-    // ==============================
+    // ========================================
     // DISPLAY
-    // ==============================
+    // ========================================
 
     function updateDisplay() {
-        result.textContent = current || "0";
+        result.textContent = current === "" ? "0" : current;
     }
 
 
-    // ==============================
-    // INPUT
-    // ==============================
+    // ========================================
+    // ADD VALUE
+    // ========================================
 
-    function add(value) {
+    function addValue(value) {
 
-        const operators = "+-*/%";
+        console.log("Button pressed:", value);
 
+        const operators = ["+", "-", "*", "/", "%"];
+
+        // Operator
         if (operators.includes(value)) {
 
             if (current === "") {
 
+                // Only allow minus as first character
                 if (value === "-") {
                     current = "-";
-                } else {
-                    return;
                 }
+
+                updateDisplay();
+                return;
+            }
+
+            const last =
+                current.charAt(current.length - 1);
+
+            // Replace an existing operator
+            if (operators.includes(last)) {
+
+                current =
+                    current.substring(0, current.length - 1)
+                    + value;
 
             } else {
 
-                const last = current[current.length - 1];
-
-                if (operators.includes(last)) {
-                    current = current.slice(0, -1) + value;
-                } else {
-                    current += value;
-                }
+                current += value;
             }
 
-        } else if (value === ".") {
+            updateDisplay();
+            return;
+        }
 
-            const parts = current.split(/[+\-*/%]/);
-            const lastNumber = parts[parts.length - 1];
+
+        // Decimal
+        if (value === ".") {
+
+            const parts =
+                current.split(/[+\-*/%]/);
+
+            const lastNumber =
+                parts[parts.length - 1];
 
             if (lastNumber.includes(".")) {
                 return;
             }
 
-            current += lastNumber === "" ? "0." : ".";
+            if (lastNumber === "") {
+                current += "0.";
+            } else {
+                current += ".";
+            }
 
-        } else {
-
-            current += value;
+            updateDisplay();
+            return;
         }
+
+
+        // Number
+        current += value;
 
         updateDisplay();
     }
 
 
-    // ==============================
+    // ========================================
     // DELETE
-    // ==============================
+    // ========================================
 
     function deleteLast() {
 
-        current = current.slice(0, -1);
+        current =
+            current.substring(0, current.length - 1);
 
         updateDisplay();
     }
 
 
-    // ==============================
+    // ========================================
     // CLEAR
-    // ==============================
+    // ========================================
 
     function clearCalculator() {
 
@@ -112,16 +138,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
         stopLyrics();
 
-        song.pause();
-        song.currentTime = 0;
+        if (song) {
+            song.pause();
+            song.currentTime = 0;
+        }
 
         updateDisplay();
     }
 
 
-    // ==============================
+    // ========================================
     // LYRICS
-    // ==============================
+    // ========================================
 
     function showLyric(text) {
 
@@ -147,14 +175,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
         showLyric(lyrics[0]);
 
-        lyricTimer = setInterval(() => {
+        lyricTimer = setInterval(function () {
 
             lyricIndex++;
 
             if (lyricIndex >= lyrics.length) {
 
                 stopLyrics();
-
                 return;
             }
 
@@ -166,7 +193,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function stopLyrics() {
 
-        if (lyricTimer) {
+        if (lyricTimer !== null) {
 
             clearInterval(lyricTimer);
 
@@ -177,9 +204,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    // ==============================
-    // EQUALS
-    // ==============================
+    // ========================================
+    // CALCULATE / PLAY
+    // ========================================
 
     function calculate() {
 
@@ -187,71 +214,96 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        const last = current[current.length - 1];
+        const last =
+            current.charAt(current.length - 1);
 
         if ("+-*/%.".includes(last)) {
             return;
         }
 
-        // Save what the user entered
-        expression.textContent = current + " =";
+        expression.textContent =
+            current + " =";
 
-        // Instead of calculating, play the song
         result.textContent = "🎵";
 
         result.classList.remove("flash");
+
         void result.offsetWidth;
+
         result.classList.add("flash");
 
-        lyric.textContent = "";
+        status.textContent =
+            "♪ Now playing";
 
-        status.textContent = "♪ Now playing";
+        if (song) {
 
-        // Restart audio
-        song.pause();
-        song.currentTime = 0;
+            song.pause();
+            song.currentTime = 0;
 
-        // Start lyrics
+        }
+
         startLyrics();
 
-        if (!muted) {
+        if (!muted && song) {
 
-            song.play().catch(() => {
+            song.play().catch(function () {
 
                 status.textContent =
-                    "♪ Press 🔊 to enable audio";
+                    "♪ Click 🔊 to enable audio";
 
             });
         }
     }
 
 
-    // ==============================
+    // ========================================
     // BUTTONS
-    // ==============================
+    // ========================================
 
-    document.querySelectorAll(".key").forEach(button => {
+    const buttons =
+        document.querySelectorAll(".key");
 
-        button.addEventListener("click", () => {
+    console.log("Calculator buttons found:", buttons.length);
 
-            const action = button.dataset.action;
-            const value = button.dataset.value;
+    buttons.forEach(function (button) {
+
+        button.addEventListener("click", function () {
+
+            const action =
+                button.getAttribute("data-action");
+
+            const value =
+                button.getAttribute("data-value");
+
 
             if (action === "clear") {
 
                 clearCalculator();
 
-            } else if (action === "delete") {
+                return;
+            }
+
+
+            if (action === "delete") {
 
                 deleteLast();
 
-            } else if (action === "equals") {
+                return;
+            }
+
+
+            if (action === "equals") {
 
                 calculate();
 
-            } else if (value !== undefined) {
+                return;
+            }
 
-                add(value);
+
+            if (value !== null) {
+
+                addValue(value);
+
             }
 
         });
@@ -259,92 +311,121 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
 
-    // ==============================
+    // ========================================
     // KEYBOARD
-    // ==============================
+    // ========================================
 
-    document.addEventListener("keydown", event => {
+    document.addEventListener("keydown", function (event) {
 
-        if (/^[0-9]$/.test(event.key)) {
+        const key = event.key;
 
-            add(event.key);
+        if (/^[0-9]$/.test(key)) {
 
-        } else if ("+-*/%.".includes(event.key)) {
+            addValue(key);
 
-            add(event.key);
+        }
 
-        } else if (
-            event.key === "Enter" ||
-            event.key === "="
+        else if ("+-*/%.".includes(key)) {
+
+            addValue(key);
+
+        }
+
+        else if (
+            key === "Enter" ||
+            key === "="
         ) {
 
             event.preventDefault();
 
             calculate();
 
-        } else if (event.key === "Backspace") {
+        }
+
+        else if (key === "Backspace") {
 
             deleteLast();
 
-        } else if (event.key === "Escape") {
+        }
+
+        else if (key === "Escape") {
 
             clearCalculator();
+
         }
 
     });
 
 
-    // ==============================
-    // SOUND
-    // ==============================
+    // ========================================
+    // SOUND BUTTON
+    // ========================================
 
-    soundBtn.addEventListener("click", () => {
+    if (soundBtn) {
 
-        muted = !muted;
+        soundBtn.addEventListener("click", function () {
 
-        if (muted) {
+            muted = !muted;
 
-            song.pause();
+            if (muted) {
+
+                if (song) {
+                    song.pause();
+                }
+
+                stopLyrics();
+
+                soundBtn.textContent = "🔇";
+
+                status.textContent = "♪ Muted";
+
+            } else {
+
+                soundBtn.textContent = "🔊";
+
+                if (expression.textContent !== "") {
+
+                    if (song) {
+
+                        song.play().catch(function () {
+                            console.log("Audio playback blocked.");
+                        });
+
+                    }
+
+                    startLyrics();
+
+                    status.textContent =
+                        "♪ Now playing";
+                }
+            }
+
+        });
+
+    }
+
+
+    // ========================================
+    // AUDIO
+    // ========================================
+
+    if (song) {
+
+        song.addEventListener("ended", function () {
 
             stopLyrics();
 
-            soundBtn.textContent = "🔇";
+            status.textContent =
+                "♪ Finished";
 
-            status.textContent = "♪ Muted";
+        });
 
-        } else {
-
-            soundBtn.textContent = "🔊";
-
-            if (expression.textContent) {
-
-                song.play();
-
-                startLyrics();
-
-                status.textContent = "♪ Now playing";
-            }
-        }
-
-    });
+    }
 
 
-    // ==============================
-    // AUDIO FINISHED
-    // ==============================
-
-    song.addEventListener("ended", () => {
-
-        stopLyrics();
-
-        status.textContent = "♪ Finished";
-
-    });
-
-
-    // ==============================
-    // INITIAL DISPLAY
-    // ==============================
+    // ========================================
+    // INITIALIZE
+    // ========================================
 
     updateDisplay();
 
