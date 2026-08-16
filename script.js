@@ -1,8 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () {
-
-    // ==============================
-    // GET HTML ELEMENTS
-    // ==============================
+document.addEventListener("DOMContentLoaded", () => {
 
     const result = document.getElementById("result");
     const expression = document.getElementById("expression");
@@ -12,10 +8,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const soundBtn = document.getElementById("soundBtn");
 
     let current = "";
+    let muted = false;
     let lyricTimer = null;
     let lyricIndex = 0;
-    let muted = false;
-
 
     // ==============================
     // LYRICS
@@ -29,48 +24,29 @@ document.addEventListener("DOMContentLoaded", function () {
         "Better than he can"
     ];
 
-
-    // ==============================
-    // LYRIC SPEED
-    // ==============================
     // Lower = faster
-    //
-    // 1000 = 1 second
-    // 500  = 0.5 second
-    // 300  = 0.3 second
-    // 200  = 0.2 second
-
     const lyricSpeed = 500;
 
 
     // ==============================
-    // UPDATE CALCULATOR
+    // DISPLAY
     // ==============================
 
     function updateDisplay() {
-
-        if (current === "") {
-            result.textContent = "0";
-        } else {
-            result.textContent = current;
-        }
-
+        result.textContent = current || "0";
     }
 
 
     // ==============================
-    // ADD NUMBER / OPERATOR
+    // INPUT
     // ==============================
 
     function add(value) {
 
         const operators = "+-*/%";
 
-        // Operator
         if (operators.includes(value)) {
 
-            // Don't allow operator as first character
-            // except minus
             if (current === "") {
 
                 if (value === "-") {
@@ -81,53 +57,29 @@ document.addEventListener("DOMContentLoaded", function () {
 
             } else {
 
-                const lastCharacter =
-                    current.charAt(current.length - 1);
+                const last = current[current.length - 1];
 
-                // Replace previous operator
-                if (operators.includes(lastCharacter)) {
-
-                    current =
-                        current.substring(0, current.length - 1)
-                        + value;
-
+                if (operators.includes(last)) {
+                    current = current.slice(0, -1) + value;
                 } else {
-
                     current += value;
-
                 }
-
             }
 
-        }
+        } else if (value === ".") {
 
-        // Decimal
-        else if (value === ".") {
+            const parts = current.split(/[+\-*/%]/);
+            const lastNumber = parts[parts.length - 1];
 
-            const numbers =
-                current.split(/[+\-*/%]/);
-
-            const lastNumber =
-                numbers[numbers.length - 1];
-
-            // Don't allow two decimals
             if (lastNumber.includes(".")) {
                 return;
             }
 
-            if (lastNumber === "") {
-                current += "0.";
-            } else {
-                current += ".";
-            }
+            current += lastNumber === "" ? "0." : ".";
 
-        }
-
-        // Number
-        else {
+        } else {
 
             current += value;
-
         }
 
         updateDisplay();
@@ -140,32 +92,35 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function deleteLast() {
 
-        current =
-            current.substring(0, current.length - 1);
+        current = current.slice(0, -1);
 
         updateDisplay();
     }
 
 
     // ==============================
-    // STOP LYRICS
+    // CLEAR
     // ==============================
 
-    function stopLyrics() {
+    function clearCalculator() {
 
-        if (lyricTimer !== null) {
+        current = "";
 
-            clearInterval(lyricTimer);
+        expression.textContent = "";
+        lyric.textContent = "";
+        status.textContent = "";
 
-            lyricTimer = null;
-        }
+        stopLyrics();
 
-        lyricIndex = 0;
+        song.pause();
+        song.currentTime = 0;
+
+        updateDisplay();
     }
 
 
     // ==============================
-    // SHOW LYRIC
+    // LYRICS
     // ==============================
 
     function showLyric(text) {
@@ -174,30 +129,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
         lyric.classList.remove("active");
 
-        // Restart CSS animation
         void lyric.offsetWidth;
 
         lyric.classList.add("active");
     }
 
 
-    // ==============================
-    // START LYRICS
-    // ==============================
-
     function startLyrics() {
 
         stopLyrics();
+
+        lyricIndex = 0;
 
         if (lyrics.length === 0) {
             return;
         }
 
-        lyricIndex = 0;
-
         showLyric(lyrics[0]);
 
-        lyricTimer = setInterval(function () {
+        lyricTimer = setInterval(() => {
 
             lyricIndex++;
 
@@ -214,24 +164,16 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    // ==============================
-    // CLEAR
-    // ==============================
+    function stopLyrics() {
 
-    function clearCalculator() {
+        if (lyricTimer) {
 
-        current = "";
+            clearInterval(lyricTimer);
 
-        expression.textContent = "";
-        result.textContent = "0";
-        lyric.textContent = "";
-        status.textContent = "";
+            lyricTimer = null;
+        }
 
-        stopLyrics();
-
-        song.pause();
-
-        song.currentTime = 0;
+        lyricIndex = 0;
     }
 
 
@@ -241,123 +183,75 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function calculate() {
 
-        // Nothing entered
         if (current === "") {
             return;
         }
 
-        // Don't play with incomplete calculation
-        const last =
-            current.charAt(current.length - 1);
+        const last = current[current.length - 1];
 
         if ("+-*/%.".includes(last)) {
             return;
         }
 
+        // Save what the user entered
+        expression.textContent = current + " =";
 
-        // Show expression
-        expression.textContent =
-            current + " =";
-
-
-        // Show music icon
+        // Instead of calculating, play the song
         result.textContent = "🎵";
 
-
-        // Animation
         result.classList.remove("flash");
-
         void result.offsetWidth;
-
         result.classList.add("flash");
 
-
-        // Reset lyrics
         lyric.textContent = "";
 
-        status.textContent =
-            "♪ Now playing";
+        status.textContent = "♪ Now playing";
 
-
-        // Reset audio
+        // Restart audio
         song.pause();
-
         song.currentTime = 0;
-
 
         // Start lyrics
         startLyrics();
 
-
-        // Play music
         if (!muted) {
 
-            song.play()
-                .then(function () {
+            song.play().catch(() => {
 
-                    status.textContent =
-                        "♪ Now playing";
+                status.textContent =
+                    "♪ Press 🔊 to enable audio";
 
-                })
-                .catch(function () {
-
-                    status.textContent =
-                        "♪ Audio blocked — press 🔊";
-
-                    stopLyrics();
-
-                });
-
+            });
         }
-
     }
 
 
     // ==============================
-    // CALCULATOR BUTTONS
+    // BUTTONS
     // ==============================
 
-    const buttons =
-        document.querySelectorAll(".key");
+    document.querySelectorAll(".key").forEach(button => {
 
+        button.addEventListener("click", () => {
 
-    buttons.forEach(function (button) {
+            const action = button.dataset.action;
+            const value = button.dataset.value;
 
-        button.addEventListener("click", function () {
-
-            const action =
-                button.getAttribute("data-action");
-
-            const value =
-                button.getAttribute("data-value");
-
-
-            // AC
             if (action === "clear") {
 
                 clearCalculator();
 
-            }
-
-            // DELETE
-            else if (action === "delete") {
+            } else if (action === "delete") {
 
                 deleteLast();
 
-            }
-
-            // EQUALS
-            else if (action === "equals") {
+            } else if (action === "equals") {
 
                 calculate();
 
-            }
-
-            // Number/operator
-            else if (value !== null) {
+            } else if (value !== undefined) {
 
                 add(value);
-
             }
 
         });
@@ -369,157 +263,83 @@ document.addEventListener("DOMContentLoaded", function () {
     // KEYBOARD
     // ==============================
 
-    document.addEventListener(
-        "keydown",
-        function (event) {
+    document.addEventListener("keydown", event => {
 
-            const key = event.key;
+        if (/^[0-9]$/.test(event.key)) {
 
+            add(event.key);
 
-            // Numbers
-            if (
-                key >= "0" &&
-                key <= "9"
-            ) {
+        } else if ("+-*/%.".includes(event.key)) {
 
-                add(key);
+            add(event.key);
 
-            }
+        } else if (
+            event.key === "Enter" ||
+            event.key === "="
+        ) {
 
+            event.preventDefault();
 
-            // Operators
-            else if (
-                "+-*/%.".includes(key)
-            ) {
+            calculate();
 
-                add(key);
+        } else if (event.key === "Backspace") {
 
-            }
+            deleteLast();
 
+        } else if (event.key === "Escape") {
 
-            // Enter
-            else if (
-                key === "Enter" ||
-                key === "="
-            ) {
-
-                event.preventDefault();
-
-                calculate();
-
-            }
-
-
-            // Backspace
-            else if (
-                key === "Backspace"
-            ) {
-
-                deleteLast();
-
-            }
-
-
-            // Escape
-            else if (
-                key === "Escape"
-            ) {
-
-                clearCalculator();
-
-            }
-
+            clearCalculator();
         }
-    );
+
+    });
 
 
     // ==============================
-    // SOUND BUTTON
+    // SOUND
     // ==============================
 
-    soundBtn.addEventListener(
-        "click",
-        function () {
+    soundBtn.addEventListener("click", () => {
 
-            muted = !muted;
+        muted = !muted;
 
+        if (muted) {
 
-            if (muted) {
-
-                song.pause();
-
-                stopLyrics();
-
-                soundBtn.textContent = "🔇";
-
-                status.textContent =
-                    "♪ Muted";
-
-            } else {
-
-                soundBtn.textContent = "🔊";
-
-
-                if (
-                    expression.textContent !== ""
-                ) {
-
-                    song.play()
-                        .then(function () {
-
-                            startLyrics();
-
-                            status.textContent =
-                                "♪ Now playing";
-
-                        })
-                        .catch(function () {
-
-                            status.textContent =
-                                "♪ Unable to play audio";
-
-                        });
-
-                }
-
-            }
-
-        }
-    );
-
-
-    // ==============================
-    // SONG FINISHED
-    // ==============================
-
-    song.addEventListener(
-        "ended",
-        function () {
+            song.pause();
 
             stopLyrics();
 
-            status.textContent =
-                "♪ Finished";
+            soundBtn.textContent = "🔇";
 
+            status.textContent = "♪ Muted";
+
+        } else {
+
+            soundBtn.textContent = "🔊";
+
+            if (expression.textContent) {
+
+                song.play();
+
+                startLyrics();
+
+                status.textContent = "♪ Now playing";
+            }
         }
-    );
+
+    });
 
 
     // ==============================
-    // SONG ERROR
+    // AUDIO FINISHED
     // ==============================
 
-    song.addEventListener(
-        "error",
-        function () {
+    song.addEventListener("ended", () => {
 
-            status.textContent =
-                "⚠ song.mp3 not found";
+        stopLyrics();
 
-            stopLyrics();
+        status.textContent = "♪ Finished";
 
-        }
-    );
+    });
 
 
     // ==============================
