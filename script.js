@@ -1,6 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () {
-
-    console.log("BetterCalc JS loaded!");
+document.addEventListener("DOMContentLoaded", () => {
 
     const result = document.getElementById("result");
     const expression = document.getElementById("expression");
@@ -14,74 +12,104 @@ document.addEventListener("DOMContentLoaded", function () {
     let lyricTimer = null;
     let lyricIndex = 0;
 
+
+    // =========================================
+    // LYRICS + INDIVIDUAL TIMING
+    // =========================================
+    //
+    // duration is in milliseconds.
+    //
+    // 1000 = 1 second
+    // 500  = 0.5 seconds
+    // 250  = 0.25 seconds
+    //
+    // Change each duration separately to sync
+    // each line with your song.mp3.
+    // =========================================
+
     const lyrics = [
-        "Tell me, why are we wasting time",
-        "On all your wasted cryin'",
-        "When you should be with me instead?",
-        "I know I can treat you better",
-        "Better than he can"
+        {
+            text: "Tell me, why are we wasting time",
+            duration: 1800
+        },
+
+        {
+            text: "On all your wasted cryin'",
+            duration: 1200
+        },
+
+        {
+            text: "When you should be with me instead?",
+            duration: 1700
+        },
+
+        {
+            text: "I know I can treat you better",
+            duration: 1400
+        },
+
+        {
+            text: "Better than he can",
+            duration: 2000
+        }
     ];
 
-    // Change this to make lyrics faster/slower.
-    // 500 = 0.5 seconds per line
-    const lyricSpeed = 500;
 
-
-    // ========================================
+    // =========================================
     // DISPLAY
-    // ========================================
+    // =========================================
 
     function updateDisplay() {
-        result.textContent = current === "" ? "0" : current;
+
+        result.textContent =
+            current === "" ? "0" : current;
+
     }
 
 
-    // ========================================
+    // =========================================
     // ADD VALUE
-    // ========================================
+    // =========================================
 
-    function addValue(value) {
+    function add(value) {
 
-        console.log("Button pressed:", value);
+        const operators = "+-*/%";
 
-        const operators = ["+", "-", "*", "/", "%"];
 
         // Operator
         if (operators.includes(value)) {
 
             if (current === "") {
 
-                // Only allow minus as first character
                 if (value === "-") {
                     current = "-";
+                } else {
+                    return;
                 }
-
-                updateDisplay();
-                return;
-            }
-
-            const last =
-                current.charAt(current.length - 1);
-
-            // Replace an existing operator
-            if (operators.includes(last)) {
-
-                current =
-                    current.substring(0, current.length - 1)
-                    + value;
 
             } else {
 
-                current += value;
+                const last =
+                    current.charAt(current.length - 1);
+
+                if (operators.includes(last)) {
+
+                    current =
+                        current.slice(0, -1) + value;
+
+                } else {
+
+                    current += value;
+
+                }
+
             }
 
-            updateDisplay();
-            return;
         }
 
 
         // Decimal
-        if (value === ".") {
+        else if (value === ".") {
 
             const parts =
                 current.split(/[+\-*/%]/);
@@ -89,44 +117,53 @@ document.addEventListener("DOMContentLoaded", function () {
             const lastNumber =
                 parts[parts.length - 1];
 
+
             if (lastNumber.includes(".")) {
                 return;
             }
 
+
             if (lastNumber === "") {
+
                 current += "0.";
+
             } else {
+
                 current += ".";
+
             }
 
-            updateDisplay();
-            return;
         }
 
 
         // Number
-        current += value;
+        else {
+
+            current += value;
+
+        }
+
 
         updateDisplay();
     }
 
 
-    // ========================================
+    // =========================================
     // DELETE
-    // ========================================
+    // =========================================
 
     function deleteLast() {
 
         current =
-            current.substring(0, current.length - 1);
+            current.slice(0, -1);
 
         updateDisplay();
     }
 
 
-    // ========================================
+    // =========================================
     // CLEAR
-    // ========================================
+    // =========================================
 
     function clearCalculator() {
 
@@ -138,18 +175,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
         stopLyrics();
 
-        if (song) {
-            song.pause();
-            song.currentTime = 0;
-        }
+        song.pause();
+        song.currentTime = 0;
 
         updateDisplay();
     }
 
 
-    // ========================================
-    // LYRICS
-    // ========================================
+    // =========================================
+    // SHOW LYRIC
+    // =========================================
 
     function showLyric(text) {
 
@@ -157,11 +192,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
         lyric.classList.remove("active");
 
+        // Restart CSS animation
         void lyric.offsetWidth;
 
         lyric.classList.add("active");
     }
 
+
+    // =========================================
+    // START LYRICS
+    // =========================================
 
     function startLyrics() {
 
@@ -169,33 +209,56 @@ document.addEventListener("DOMContentLoaded", function () {
 
         lyricIndex = 0;
 
+
         if (lyrics.length === 0) {
             return;
         }
 
-        showLyric(lyrics[0]);
 
-        lyricTimer = setInterval(function () {
+        function showNextLine() {
 
-            lyricIndex++;
-
+            // Finished all lyrics
             if (lyricIndex >= lyrics.length) {
 
                 stopLyrics();
+
                 return;
             }
 
-            showLyric(lyrics[lyricIndex]);
 
-        }, lyricSpeed);
+            const line =
+                lyrics[lyricIndex];
+
+
+            // Show current line
+            showLyric(line.text);
+
+
+            // Wait THIS LINE'S duration
+            lyricTimer = setTimeout(() => {
+
+                lyricIndex++;
+
+                showNextLine();
+
+            }, line.duration);
+
+        }
+
+
+        showNextLine();
     }
 
+
+    // =========================================
+    // STOP LYRICS
+    // =========================================
 
     function stopLyrics() {
 
         if (lyricTimer !== null) {
 
-            clearInterval(lyricTimer);
+            clearTimeout(lyricTimer);
 
             lyricTimer = null;
         }
@@ -204,9 +267,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    // ========================================
-    // CALCULATE / PLAY
-    // ========================================
+    // =========================================
+    // EQUALS / PLAY
+    // =========================================
 
     function calculate() {
 
@@ -214,95 +277,106 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+
         const last =
             current.charAt(current.length - 1);
 
+
+        // Don't start with incomplete expression
         if ("+-*/%.".includes(last)) {
             return;
         }
 
+
+        // Show expression
         expression.textContent =
             current + " =";
 
+
+        // Replace answer with music icon
         result.textContent = "🎵";
 
+
+        // Animation
         result.classList.remove("flash");
 
         void result.offsetWidth;
 
         result.classList.add("flash");
 
+
+        // Status
         status.textContent =
             "♪ Now playing";
 
-        if (song) {
 
-            song.pause();
-            song.currentTime = 0;
+        // Reset song
+        song.pause();
+        song.currentTime = 0;
 
-        }
 
+        // Start synchronized lyrics
         startLyrics();
 
-        if (!muted && song) {
 
-            song.play().catch(function () {
+        // Play audio
+        if (!muted) {
+
+            song.play().catch(() => {
 
                 status.textContent =
                     "♪ Click 🔊 to enable audio";
 
             });
+
         }
+
     }
 
 
-    // ========================================
-    // BUTTONS
-    // ========================================
+    // =========================================
+    // CALCULATOR BUTTONS
+    // =========================================
 
-    const buttons =
-        document.querySelectorAll(".key");
+    document.querySelectorAll(".key").forEach(button => {
 
-    console.log("Calculator buttons found:", buttons.length);
-
-    buttons.forEach(function (button) {
-
-        button.addEventListener("click", function () {
+        button.addEventListener("click", () => {
 
             const action =
-                button.getAttribute("data-action");
+                button.dataset.action;
 
             const value =
-                button.getAttribute("data-value");
+                button.dataset.value;
 
 
+            // AC
             if (action === "clear") {
 
                 clearCalculator();
 
-                return;
             }
 
 
-            if (action === "delete") {
+            // DELETE
+            else if (action === "delete") {
 
                 deleteLast();
 
-                return;
             }
 
 
-            if (action === "equals") {
+            // EQUALS
+            else if (action === "equals") {
 
                 calculate();
 
-                return;
             }
 
 
-            if (value !== null) {
+            // Number/operator
+            else if (value !== undefined) {
 
-                addValue(value);
+                add(value);
 
             }
 
@@ -311,26 +385,32 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 
-    // ========================================
+    // =========================================
     // KEYBOARD
-    // ========================================
+    // =========================================
 
-    document.addEventListener("keydown", function (event) {
+    document.addEventListener("keydown", event => {
 
         const key = event.key;
 
+
+        // Numbers
         if (/^[0-9]$/.test(key)) {
 
-            addValue(key);
+            add(key);
 
         }
 
+
+        // Operators
         else if ("+-*/%.".includes(key)) {
 
-            addValue(key);
+            add(key);
 
         }
 
+
+        // Enter
         else if (
             key === "Enter" ||
             key === "="
@@ -342,12 +422,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
         }
 
+
+        // Backspace
         else if (key === "Backspace") {
 
             deleteLast();
 
         }
 
+
+        // Escape
         else if (key === "Escape") {
 
             clearCalculator();
@@ -357,75 +441,66 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 
-    // ========================================
+    // =========================================
     // SOUND BUTTON
-    // ========================================
+    // =========================================
 
-    if (soundBtn) {
+    soundBtn.addEventListener("click", () => {
 
-        soundBtn.addEventListener("click", function () {
-
-            muted = !muted;
-
-            if (muted) {
-
-                if (song) {
-                    song.pause();
-                }
-
-                stopLyrics();
-
-                soundBtn.textContent = "🔇";
-
-                status.textContent = "♪ Muted";
-
-            } else {
-
-                soundBtn.textContent = "🔊";
-
-                if (expression.textContent !== "") {
-
-                    if (song) {
-
-                        song.play().catch(function () {
-                            console.log("Audio playback blocked.");
-                        });
-
-                    }
-
-                    startLyrics();
-
-                    status.textContent =
-                        "♪ Now playing";
-                }
-            }
-
-        });
-
-    }
+        muted = !muted;
 
 
-    // ========================================
-    // AUDIO
-    // ========================================
+        if (muted) {
 
-    if (song) {
-
-        song.addEventListener("ended", function () {
+            song.pause();
 
             stopLyrics();
 
-            status.textContent =
-                "♪ Finished";
+            soundBtn.textContent = "🔇";
 
-        });
+            status.textContent = "♪ Muted";
 
-    }
+        }
 
 
-    // ========================================
-    // INITIALIZE
-    // ========================================
+        else {
+
+            soundBtn.textContent = "🔊";
+
+
+            if (expression.textContent !== "") {
+
+                song.play();
+
+                startLyrics();
+
+                status.textContent =
+                    "♪ Now playing";
+
+            }
+
+        }
+
+    });
+
+
+    // =========================================
+    // AUDIO FINISHED
+    // =========================================
+
+    song.addEventListener("ended", () => {
+
+        stopLyrics();
+
+        status.textContent =
+            "♪ Finished";
+
+    });
+
+
+    // =========================================
+    // INITIAL DISPLAY
+    // =========================================
 
     updateDisplay();
 
