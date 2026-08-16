@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const lyrics = [
         {
             text: "Tell me, why are we wasting time",
-            duration: 1800
+            duration: 1000
         },
 
         {
