@@ -4,62 +4,297 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0b0b12">
+
   <title>BetterCalc</title>
+
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+
   <main class="app">
+
+    <!-- ==============================
+         HEADER
+    =============================== -->
+
     <header class="topbar">
+
       <div>
         <h1>BetterCalc</h1>
-        <span>the calculator that doesn't calculate</span>
+
+        <span>
+          the calculator that doesn't calculate
+        </span>
       </div>
-      <button id="soundBtn" class="icon-btn" aria-label="Toggle sound">🔊</button>
+
+      <button
+        id="soundBtn"
+        class="icon-btn"
+        type="button"
+        aria-label="Toggle sound"
+      >
+        🔊
+      </button>
+
     </header>
 
+
+    <!-- ==============================
+         CALCULATOR
+    =============================== -->
+
     <section class="calculator">
+
       <div class="display">
-        <div id="expression" class="expression"></div>
-        <div id="result" class="result">0</div>
-        <div id="lyric" class="lyric"></div>
-        <div id="status" class="status"></div>
+
+        <!-- Calculation entered by user -->
+        <div
+          id="expression"
+          class="expression"
+          aria-live="polite"
+        ></div>
+
+
+        <!-- Main calculator display -->
+        <div
+          id="result"
+          class="result"
+          aria-live="polite"
+        >
+          0
+        </div>
+
+
+        <!-- Lyrics appear here -->
+        <div
+          id="lyric"
+          class="lyric"
+          aria-live="polite"
+        ></div>
+
+
+        <!-- Music status -->
+        <div
+          id="status"
+          class="status"
+          aria-live="polite"
+        ></div>
+
       </div>
+
+
+      <!-- ==============================
+           CALCULATOR BUTTONS
+      =============================== -->
 
       <div class="keys">
-        <button class="key danger" data-action="clear">AC</button>
-        <button class="key" data-action="delete">⌫</button>
-        <button class="key operator" data-value="%">%</button>
-        <button class="key operator" data-value="/">÷</button>
 
-        <button class="key" data-value="7">7</button>
-        <button class="key" data-value="8">8</button>
-        <button class="key" data-value="9">9</button>
-        <button class="key operator" data-value="*">×</button>
+        <!-- Row 1 -->
 
-        <button class="key" data-value="4">4</button>
-        <button class="key" data-value="5">5</button>
-        <button class="key" data-value="6">6</button>
-        <button class="key operator" data-value="-">−</button>
+        <button
+          class="key danger"
+          type="button"
+          data-action="clear"
+        >
+          AC
+        </button>
 
-        <button class="key" data-value="1">1</button>
-        <button class="key" data-value="2">2</button>
-        <button class="key" data-value="3">3</button>
-        <button class="key operator" data-value="+">+</button>
+        <button
+          class="key"
+          type="button"
+          data-action="delete"
+        >
+          ⌫
+        </button>
 
-        <button class="key zero" data-value="0">0</button>
-        <button class="key" data-value=".">.</button>
-        <button class="key equals" data-action="equals">=</button>
+        <button
+          class="key operator"
+          type="button"
+          data-value="%"
+        >
+          %
+        </button>
+
+        <button
+          class="key operator"
+          type="button"
+          data-value="/"
+        >
+          ÷
+        </button>
+
+
+        <!-- Row 2 -->
+
+        <button
+          class="key"
+          type="button"
+          data-value="7"
+        >
+          7
+        </button>
+
+        <button
+          class="key"
+          type="button"
+          data-value="8"
+        >
+          8
+        </button>
+
+        <button
+          class="key"
+          type="button"
+          data-value="9"
+        >
+          9
+        </button>
+
+        <button
+          class="key operator"
+          type="button"
+          data-value="*"
+        >
+          ×
+        </button>
+
+
+        <!-- Row 3 -->
+
+        <button
+          class="key"
+          type="button"
+          data-value="4"
+        >
+          4
+        </button>
+
+        <button
+          class="key"
+          type="button"
+          data-value="5"
+        >
+          5
+        </button>
+
+        <button
+          class="key"
+          type="button"
+          data-value="6"
+        >
+          6
+        </button>
+
+        <button
+          class="key operator"
+          type="button"
+          data-value="-"
+        >
+          −
+        </button>
+
+
+        <!-- Row 4 -->
+
+        <button
+          class="key"
+          type="button"
+          data-value="1"
+        >
+          1
+        </button>
+
+        <button
+          class="key"
+          type="button"
+          data-value="2"
+        >
+          2
+        </button>
+
+        <button
+          class="key"
+          type="button"
+          data-value="3"
+        >
+          3
+        </button>
+
+        <button
+          class="key operator"
+          type="button"
+          data-value="+"
+        >
+          +
+        </button>
+
+
+        <!-- Row 5 -->
+
+        <button
+          class="key zero"
+          type="button"
+          data-value="0"
+        >
+          0
+        </button>
+
+        <button
+          class="key"
+          type="button"
+          data-value="."
+        >
+          .
+        </button>
+
+        <button
+          class="key equals"
+          type="button"
+          data-action="equals"
+        >
+          =
+        </button>
+
       </div>
+
     </section>
 
-    <p class="keyboard-tip">Keyboard supported • Enter = play • Esc = clear</p>
+
+    <!-- ==============================
+         KEYBOARD HELP
+    =============================== -->
+
+    <p class="keyboard-tip">
+      Keyboard supported • Enter = play • Esc = clear
+    </p>
+
   </main>
 
-  <audio id="song" preload="auto">
-    <source src="song.mp3" type="audio/mpeg">
+
+  <!-- ==============================
+       AUDIO
+  =============================== -->
+
+  <audio
+    id="song"
+    preload="auto"
+  >
+    <source
+      src="song.mp3"
+      type="audio/mpeg"
+    >
+
+    Your browser does not support audio playback.
   </audio>
 
+
+  <!-- ==============================
+       JAVASCRIPT
+  =============================== -->
+
   <script src="script.js"></script>
+
 </body>
 </html>
 
