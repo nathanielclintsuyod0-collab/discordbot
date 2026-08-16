@@ -1,5 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
 
+    // =========================================
+    // ELEMENTS
+    // =========================================
+
     const result = document.getElementById("result");
     const expression = document.getElementById("expression");
     const lyric = document.getElementById("lyric");
@@ -7,51 +11,65 @@ document.addEventListener("DOMContentLoaded", () => {
     const song = document.getElementById("song");
     const soundBtn = document.getElementById("soundBtn");
 
+
+    // =========================================
+    // CALCULATOR VARIABLES
+    // =========================================
+
     let current = "";
     let muted = false;
-    let lyricTimer = null;
-    let lyricIndex = 0;
 
 
     // =========================================
-    // LYRICS + INDIVIDUAL TIMING
+    // LYRIC VARIABLES
+    // =========================================
+
+    let currentLyricIndex = -1;
+
+
+    // =========================================
+    // LYRICS
     // =========================================
     //
-    // duration is in milliseconds.
+    // "start" = when that lyric starts in song.mp3
     //
-    // 1000 = 1 second
-    // 500  = 0.5 seconds
-    // 250  = 0.25 seconds
+    // Time is in SECONDS.
     //
-    // Change each duration separately to sync
-    // each line with your song.mp3.
+    // Example:
+    // start: 2.50 = 2.5 seconds
+    // start: 5.25 = 5.25 seconds
+    //
+    // Change these values to synchronize the
+    // lyrics with YOUR song.mp3.
     // =========================================
 
     const lyrics = [
+
         {
             text: "Tell me, why are we wasting time",
-            duration: 1000
+            start: 0.00
         },
 
         {
             text: "On all your wasted cryin'",
-            duration: 1200
+            start: 2.00
         },
 
         {
             text: "When you should be with me instead?",
-            duration: 1700
+            start: 3.50
         },
 
         {
             text: "I know I can treat you better",
-            duration: 1400
+            start: 5.50
         },
 
         {
             text: "Better than he can",
-            duration: 2000
+            start: 7.50
         }
+
     ];
 
 
@@ -61,14 +79,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateDisplay() {
 
-        result.textContent =
-            current === "" ? "0" : current;
+        if (current === "") {
+
+            result.textContent = "0";
+
+        } else {
+
+            result.textContent = current;
+
+        }
 
     }
 
 
     // =========================================
-    // ADD VALUE
+    // ADD NUMBER / OPERATOR
     // =========================================
 
     function add(value) {
@@ -76,15 +101,24 @@ document.addEventListener("DOMContentLoaded", () => {
         const operators = "+-*/%";
 
 
-        // Operator
+        // -----------------------------
+        // OPERATOR
+        // -----------------------------
+
         if (operators.includes(value)) {
 
             if (current === "") {
 
+                // Only allow minus at beginning
+
                 if (value === "-") {
+
                     current = "-";
+
                 } else {
+
                     return;
+
                 }
 
             } else {
@@ -92,10 +126,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 const last =
                     current.charAt(current.length - 1);
 
+
+                // Replace previous operator
+
                 if (operators.includes(last)) {
 
                     current =
-                        current.slice(0, -1) + value;
+                        current.substring(
+                            0,
+                            current.length - 1
+                        ) + value;
 
                 } else {
 
@@ -108,7 +148,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
-        // Decimal
+        // -----------------------------
+        // DECIMAL
+        // -----------------------------
+
         else if (value === ".") {
 
             const parts =
@@ -118,8 +161,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 parts[parts.length - 1];
 
 
+            // Prevent multiple decimals
+
             if (lastNumber.includes(".")) {
+
                 return;
+
             }
 
 
@@ -136,7 +183,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
-        // Number
+        // -----------------------------
+        // NUMBER
+        // -----------------------------
+
         else {
 
             current += value;
@@ -145,6 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         updateDisplay();
+
     }
 
 
@@ -155,9 +206,13 @@ document.addEventListener("DOMContentLoaded", () => {
     function deleteLast() {
 
         current =
-            current.slice(0, -1);
+            current.substring(
+                0,
+                current.length - 1
+            );
 
         updateDisplay();
+
     }
 
 
@@ -170,15 +225,23 @@ document.addEventListener("DOMContentLoaded", () => {
         current = "";
 
         expression.textContent = "";
+
         lyric.textContent = "";
+
         status.textContent = "";
 
-        stopLyrics();
+        currentLyricIndex = -1;
+
+
+        // Stop song
 
         song.pause();
+
         song.currentTime = 0;
 
+
         updateDisplay();
+
     }
 
 
@@ -190,114 +253,140 @@ document.addEventListener("DOMContentLoaded", () => {
 
         lyric.textContent = text;
 
-        lyric.classList.remove("active");
 
         // Restart CSS animation
+
+        lyric.classList.remove("active");
+
         void lyric.offsetWidth;
 
         lyric.classList.add("active");
+
     }
 
 
     // =========================================
-    // START LYRICS
+    // SYNCHRONIZE LYRICS
+    // =========================================
+    //
+    // This function uses song.currentTime.
+    //
+    // The MP3 is the clock.
     // =========================================
 
-    function startLyrics() {
+    function syncLyrics() {
 
-        stopLyrics();
+        if (!song) {
 
-        lyricIndex = 0;
-
-
-        if (lyrics.length === 0) {
             return;
+
         }
 
 
-        function showNextLine() {
+        const time =
+            song.currentTime;
 
-            // Finished all lyrics
-            if (lyricIndex >= lyrics.length) {
 
-                stopLyrics();
+        let newIndex = -1;
 
-                return;
+
+        // Find the latest lyric whose
+        // start time has been reached.
+
+        for (
+            let i = 0;
+            i < lyrics.length;
+            i++
+        ) {
+
+            if (
+                time >= lyrics[i].start
+            ) {
+
+                newIndex = i;
+
+            } else {
+
+                break;
+
             }
 
-
-            const line =
-                lyrics[lyricIndex];
+        }
 
 
-            // Show current line
-            showLyric(line.text);
+        // No lyric yet
 
+        if (newIndex === -1) {
 
-            // Wait THIS LINE'S duration
-            lyricTimer = setTimeout(() => {
-
-                lyricIndex++;
-
-                showNextLine();
-
-            }, line.duration);
+            return;
 
         }
 
 
-        showNextLine();
-    }
+        // Don't repeatedly redraw
+        // the same lyric.
+
+        if (
+            newIndex !== currentLyricIndex
+        ) {
+
+            currentLyricIndex =
+                newIndex;
 
 
-    // =========================================
-    // STOP LYRICS
-    // =========================================
+            showLyric(
+                lyrics[newIndex].text
+            );
 
-    function stopLyrics() {
-
-        if (lyricTimer !== null) {
-
-            clearTimeout(lyricTimer);
-
-            lyricTimer = null;
         }
 
-        lyricIndex = 0;
     }
 
 
     // =========================================
-    // EQUALS / PLAY
+    // CALCULATE / PLAY SONG
     // =========================================
 
     function calculate() {
 
         if (current === "") {
+
             return;
+
         }
 
 
         const last =
-            current.charAt(current.length - 1);
+            current.charAt(
+                current.length - 1
+            );
 
 
-        // Don't start with incomplete expression
-        if ("+-*/%.".includes(last)) {
+        // Don't play if expression ends
+        // with an operator.
+
+        if (
+            "+-*/%.".includes(last)
+        ) {
+
             return;
+
         }
 
 
         // Show expression
+
         expression.textContent =
             current + " =";
 
 
-        // Replace answer with music icon
+        // Show music icon
+
         result.textContent = "🎵";
 
 
-        // Animation
+        // Result animation
+
         result.classList.remove("flash");
 
         void result.offsetWidth;
@@ -305,21 +394,26 @@ document.addEventListener("DOMContentLoaded", () => {
         result.classList.add("flash");
 
 
-        // Status
+        // Reset lyric position
+
+        currentLyricIndex = -1;
+
+        lyric.textContent = "";
+
+
         status.textContent =
             "♪ Now playing";
 
 
-        // Reset song
+        // Restart song
+
         song.pause();
+
         song.currentTime = 0;
 
 
-        // Start synchronized lyrics
-        startLyrics();
+        // Play song
 
-
-        // Play audio
         if (!muted) {
 
             song.play().catch(() => {
@@ -338,49 +432,68 @@ document.addEventListener("DOMContentLoaded", () => {
     // CALCULATOR BUTTONS
     // =========================================
 
-    document.querySelectorAll(".key").forEach(button => {
-
-        button.addEventListener("click", () => {
-
-            const action =
-                button.dataset.action;
-
-            const value =
-                button.dataset.value;
+    const buttons =
+        document.querySelectorAll(".key");
 
 
-            // AC
-            if (action === "clear") {
+    buttons.forEach(button => {
 
-                clearCalculator();
+        button.addEventListener(
+            "click",
+            () => {
+
+                const action =
+                    button.dataset.action;
+
+                const value =
+                    button.dataset.value;
+
+
+                // AC
+
+                if (
+                    action === "clear"
+                ) {
+
+                    clearCalculator();
+
+                }
+
+
+                // DELETE
+
+                else if (
+                    action === "delete"
+                ) {
+
+                    deleteLast();
+
+                }
+
+
+                // EQUALS
+
+                else if (
+                    action === "equals"
+                ) {
+
+                    calculate();
+
+                }
+
+
+                // Number / operator
+
+                else if (
+                    value !== undefined
+                ) {
+
+                    add(value);
+
+                }
 
             }
-
-
-            // DELETE
-            else if (action === "delete") {
-
-                deleteLast();
-
-            }
-
-
-            // EQUALS
-            else if (action === "equals") {
-
-                calculate();
-
-            }
-
-
-            // Number/operator
-            else if (value !== undefined) {
-
-                add(value);
-
-            }
-
-        });
+        );
 
     });
 
@@ -389,117 +502,228 @@ document.addEventListener("DOMContentLoaded", () => {
     // KEYBOARD
     // =========================================
 
-    document.addEventListener("keydown", event => {
+    document.addEventListener(
+        "keydown",
+        event => {
 
-        const key = event.key;
+            const key =
+                event.key;
 
 
-        // Numbers
-        if (/^[0-9]$/.test(key)) {
+            // Numbers
 
-            add(key);
+            if (
+                /^[0-9]$/.test(key)
+            ) {
+
+                add(key);
+
+            }
+
+
+            // Operators
+
+            else if (
+                "+-*/%.".includes(key)
+            ) {
+
+                add(key);
+
+            }
+
+
+            // ENTER
+
+            else if (
+                key === "Enter" ||
+                key === "="
+            ) {
+
+                event.preventDefault();
+
+                calculate();
+
+            }
+
+
+            // BACKSPACE
+
+            else if (
+                key === "Backspace"
+            ) {
+
+                event.preventDefault();
+
+                deleteLast();
+
+            }
+
+
+            // ESCAPE
+
+            else if (
+                key === "Escape"
+            ) {
+
+                clearCalculator();
+
+            }
 
         }
-
-
-        // Operators
-        else if ("+-*/%.".includes(key)) {
-
-            add(key);
-
-        }
-
-
-        // Enter
-        else if (
-            key === "Enter" ||
-            key === "="
-        ) {
-
-            event.preventDefault();
-
-            calculate();
-
-        }
-
-
-        // Backspace
-        else if (key === "Backspace") {
-
-            deleteLast();
-
-        }
-
-
-        // Escape
-        else if (key === "Escape") {
-
-            clearCalculator();
-
-        }
-
-    });
+    );
 
 
     // =========================================
     // SOUND BUTTON
     // =========================================
 
-    soundBtn.addEventListener("click", () => {
+    soundBtn.addEventListener(
+        "click",
+        () => {
 
-        muted = !muted;
-
-
-        if (muted) {
-
-            song.pause();
-
-            stopLyrics();
-
-            soundBtn.textContent = "🔇";
-
-            status.textContent = "♪ Muted";
-
-        }
+            muted = !muted;
 
 
-        else {
+            // -----------------------------
+            // MUTED
+            // -----------------------------
 
-            soundBtn.textContent = "🔊";
+            if (muted) {
 
+                song.pause();
 
-            if (expression.textContent !== "") {
-
-                song.play();
-
-                startLyrics();
+                soundBtn.textContent =
+                    "🔇";
 
                 status.textContent =
-                    "♪ Now playing";
+                    "♪ Muted";
+
+            }
+
+
+            // -----------------------------
+            // UNMUTED
+            // -----------------------------
+
+            else {
+
+                soundBtn.textContent =
+                    "🔊";
+
+
+                if (
+                    expression.textContent !== ""
+                ) {
+
+                    song.play().catch(() => {
+
+                        status.textContent =
+                            "♪ Unable to play audio";
+
+                    });
+
+                    status.textContent =
+                        "♪ Now playing";
+
+                }
 
             }
 
         }
-
-    });
-
-
-    // =========================================
-    // AUDIO FINISHED
-    // =========================================
-
-    song.addEventListener("ended", () => {
-
-        stopLyrics();
-
-        status.textContent =
-            "♪ Finished";
-
-    });
+    );
 
 
     // =========================================
-    // INITIAL DISPLAY
+    // SONG PLAYBACK
+    // =========================================
+
+    song.addEventListener(
+        "play",
+        () => {
+
+            status.textContent =
+                "♪ Now playing";
+
+        }
+    );
+
+
+    // =========================================
+    // SONG PAUSED
+    // =========================================
+
+    song.addEventListener(
+        "pause",
+        () => {
+
+            if (
+                song.currentTime > 0 &&
+                !song.ended &&
+                !muted
+            ) {
+
+                status.textContent =
+                    "♪ Paused";
+
+            }
+
+        }
+    );
+
+
+    // =========================================
+    // SONG FINISHED
+    // =========================================
+
+    song.addEventListener(
+        "ended",
+        () => {
+
+            currentLyricIndex = -1;
+
+            lyric.textContent = "";
+
+            status.textContent =
+                "♪ Finished";
+
+        }
+    );
+
+
+    // =========================================
+    // AUDIO ERROR
+    // =========================================
+
+    song.addEventListener(
+        "error",
+        () => {
+
+            status.textContent =
+                "⚠ song.mp3 not found";
+
+        }
+    );
+
+
+    // =========================================
+    // MOST IMPORTANT PART
+    // =========================================
+    //
+    // Every time the MP3 playback position
+    // changes, check the lyrics.
+    //
+    // This means the MP3 controls the lyrics,
+    // NOT a separate timer.
+    // =========================================
+
+    song.addEventListener(
+        "timeupdate",
+        syncLyrics
+    );
+
+
+    // =========================================
+    // INITIALIZE
     // =========================================
 
     updateDisplay();
