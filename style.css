@@ -1,0 +1,228 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #09090f;
+  --panel: rgba(22, 22, 32, 0.82);
+  --button: rgba(255, 255, 255, 0.075);
+  --button-hover: rgba(255, 255, 255, 0.13);
+  --purple: #8b5cf6;
+  --pink: #ec4899;
+  --text: #fff;
+  --muted: rgba(255, 255, 255, 0.42);
+}
+
+body {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  overflow: hidden;
+  color: var(--text);
+  font-family: Inter, system-ui, sans-serif;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(139, 92, 246, .20), transparent 30%),
+    radial-gradient(circle at 85% 80%, rgba(236, 72, 153, .15), transparent 30%),
+    var(--bg);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(120deg, transparent, rgba(255,255,255,.025), transparent);
+}
+
+.app {
+  width: min(410px, 94vw);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5px 16px;
+}
+
+.topbar h1 {
+  font-size: 22px;
+  letter-spacing: -0.7px;
+}
+
+.topbar span {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 13px;
+  background: rgba(255,255,255,.06);
+  color: white;
+  cursor: pointer;
+  transition: .15s ease;
+}
+
+.icon-btn:hover {
+  background: var(--button-hover);
+}
+
+.calculator {
+  padding: 18px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 30px;
+  background: var(--panel);
+  box-shadow: 0 30px 100px rgba(0,0,0,.55);
+  backdrop-filter: blur(25px);
+}
+
+.display {
+  height: 170px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 18px;
+  margin-bottom: 14px;
+  border-radius: 22px;
+  overflow: hidden;
+  background: rgba(0,0,0,.28);
+}
+
+.expression {
+  width: 100%;
+  min-height: 20px;
+  color: var(--muted);
+  font-size: 14px;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.result {
+  max-width: 100%;
+  font-size: clamp(40px, 11vw, 58px);
+  font-weight: 700;
+  letter-spacing: -3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lyric {
+  width: 100%;
+  min-height: 23px;
+  margin-top: 5px;
+  color: rgba(255,255,255,.72);
+  font-size: 13px;
+  font-style: italic;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: opacity .25s ease, transform .25s ease;
+}
+
+.status {
+  min-height: 15px;
+  margin-top: 2px;
+  color: rgba(255,255,255,.3);
+  font-size: 9px;
+  text-align: right;
+}
+
+.keys {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.key {
+  height: 67px;
+  border: 0;
+  border-radius: 18px;
+  color: white;
+  background: var(--button);
+  font: 600 20px Inter, sans-serif;
+  cursor: pointer;
+  transition: transform .1s ease, background .15s ease;
+  user-select: none;
+}
+
+.key:hover {
+  background: var(--button-hover);
+}
+
+.key:active {
+  transform: scale(.94);
+}
+
+.operator {
+  background: rgba(139,92,246,.18);
+}
+
+.equals {
+  background: linear-gradient(135deg, var(--purple), var(--pink));
+}
+
+.danger {
+  color: #ff86a5;
+  background: rgba(255,70,120,.10);
+}
+
+.zero {
+  grid-column: span 2;
+}
+
+.keyboard-tip {
+  margin-top: 13px;
+  color: rgba(255,255,255,.25);
+  font-size: 10px;
+  text-align: center;
+}
+
+.lyric.active {
+  animation: lyricIn .35s ease;
+}
+
+.result.flash {
+  animation: resultFlash .45s ease;
+}
+
+@keyframes lyricIn {
+  from {
+    opacity: .15;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes resultFlash {
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+@media (max-height: 700px) {
+  .key {
+    height: 57px;
+  }
+
+  .display {
+    height: 145px;
+  }
+}
