@@ -4,9 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0b0b12">
-
   <title>BetterCalc</title>
-
   <link rel="stylesheet" href="style.css">
 </head>
 
@@ -14,18 +12,10 @@
 
   <main class="app">
 
-    <!-- ==============================
-         HEADER
-    =============================== -->
-
     <header class="topbar">
-
       <div>
         <h1>BetterCalc</h1>
-
-        <span>
-          the calculator that doesn't calculate
-        </span>
+        <span>the calculator that doesn't calculate</span>
       </div>
 
       <button
@@ -36,61 +26,39 @@
       >
         🔊
       </button>
-
     </header>
 
-
-    <!-- ==============================
-         CALCULATOR
-    =============================== -->
 
     <section class="calculator">
 
       <div class="display">
 
-        <!-- Calculation entered by user -->
         <div
           id="expression"
           class="expression"
-          aria-live="polite"
         ></div>
 
-
-        <!-- Main calculator display -->
         <div
           id="result"
           class="result"
-          aria-live="polite"
         >
           0
         </div>
 
-
-        <!-- Lyrics appear here -->
         <div
           id="lyric"
           class="lyric"
-          aria-live="polite"
         ></div>
 
-
-        <!-- Music status -->
         <div
           id="status"
           class="status"
-          aria-live="polite"
         ></div>
 
       </div>
 
 
-      <!-- ==============================
-           CALCULATOR BUTTONS
-      =============================== -->
-
       <div class="keys">
-
-        <!-- Row 1 -->
 
         <button
           class="key danger"
@@ -125,8 +93,6 @@
         </button>
 
 
-        <!-- Row 2 -->
-
         <button
           class="key"
           type="button"
@@ -159,8 +125,6 @@
           ×
         </button>
 
-
-        <!-- Row 3 -->
 
         <button
           class="key"
@@ -195,8 +159,6 @@
         </button>
 
 
-        <!-- Row 4 -->
-
         <button
           class="key"
           type="button"
@@ -230,8 +192,6 @@
         </button>
 
 
-        <!-- Row 5 -->
-
         <button
           class="key zero"
           type="button"
@@ -261,20 +221,12 @@
     </section>
 
 
-    <!-- ==============================
-         KEYBOARD HELP
-    =============================== -->
-
     <p class="keyboard-tip">
       Keyboard supported • Enter = play • Esc = clear
     </p>
 
   </main>
 
-
-  <!-- ==============================
-       AUDIO
-  =============================== -->
 
   <audio
     id="song"
@@ -284,17 +236,11 @@
       src="song.mp3"
       type="audio/mpeg"
     >
-
-    Your browser does not support audio playback.
   </audio>
 
 
-  <!-- ==============================
-       JAVASCRIPT
-  =============================== -->
-
-  <script src="script.js"></script>
+  <!-- KEEP EXTERNAL JAVASCRIPT -->
+  <script src="./script.js"></script>
 
 </body>
 </html>
-
