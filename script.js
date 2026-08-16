@@ -8,27 +8,49 @@ const soundBtn = document.getElementById("soundBtn");
 let current = "";
 let muted = false;
 let lyricTimer = null;
+let lyricIndex = 0;
 
-// ==============================
+// ==========================================
 // LYRICS
-// ==============================
-// time = seconds into the MP3
+// ==========================================
+// These are the lyrics you provided.
+// The lyric speed is controlled separately
+// from the MP3 so you can make them move faster.
 const lyrics = [
-    { time: 0.0, text: "Tell me, why are we wasting time" },
-    { time: 1.5, text: "On all your wasted cryin'" },
-    { time: 3.0, text: "When you should be with me instead?" },
-    { time: 4.8, text: "I know I can treat you better" },
-    { time: 6.2, text: "Better than he can" }
+    "Tell me, why are we wasting time",
+    "On all your wasted cryin'",
+    "When you should be with me instead?",
+    "I know I can treat you better",
+    "Better than he can"
 ];
 
+// ==========================================
+// LYRIC SPEED
+// ==========================================
+// Lower number = faster lyrics.
+//
+// 1000 = 1 second per line
+// 750  = 0.75 second per line
+// 500  = 0.5 second per line
+// 300  = 0.3 second per line
+// 200  = 0.2 second per line
+//
+// Change this value if you want them faster/slower.
+const lyricSpeed = 500;
 
-// ==============================
-// CALCULATOR
-// ==============================
+
+// ==========================================
+// CALCULATOR DISPLAY
+// ==========================================
 
 function updateDisplay() {
     result.textContent = current || "0";
 }
+
+
+// ==========================================
+// ADD INPUT
+// ==========================================
 
 function add(value) {
     const operators = "+-*/%";
@@ -36,6 +58,7 @@ function add(value) {
     if (operators.includes(value)) {
 
         if (!current) {
+
             if (value === "-") {
                 current = "-";
             } else {
@@ -70,9 +93,9 @@ function add(value) {
 }
 
 
-// ==============================
+// ==========================================
 // DELETE
-// ==============================
+// ==========================================
 
 function deleteLast() {
 
@@ -82,9 +105,9 @@ function deleteLast() {
 }
 
 
-// ==============================
+// ==========================================
 // CLEAR
-// ==============================
+// ==========================================
 
 function clearCalculator() {
 
@@ -94,35 +117,35 @@ function clearCalculator() {
     lyric.textContent = "";
     status.textContent = "";
 
+    stopLyrics();
+
     song.pause();
     song.currentTime = 0;
-
-    stopLyrics();
 
     updateDisplay();
 }
 
 
-// ==============================
-// LYRIC DISPLAY
-// ==============================
+// ==========================================
+// LYRIC ANIMATION
+// ==========================================
 
 function showLyric(text) {
 
     lyric.textContent = text;
 
-    // Restart animation
     lyric.classList.remove("active");
 
+    // Force browser to restart animation
     void lyric.offsetWidth;
 
     lyric.classList.add("active");
 }
 
 
-// ==============================
-// START LYRIC SYNC
-// ==============================
+// ==========================================
+// START LYRICS
+// ==========================================
 
 function startLyrics() {
 
@@ -132,35 +155,41 @@ function startLyrics() {
         return;
     }
 
-    let index = 0;
+    lyricIndex = 0;
 
-    showLyric(lyrics[0].text);
+    showLyric(lyrics[lyricIndex]);
+
+    /*
+        IMPORTANT:
+
+        This timer is completely independent
+        from song.currentTime.
+
+        This means changing lyricSpeed
+        actually changes how fast the lyrics
+        move.
+    */
 
     lyricTimer = setInterval(() => {
 
-        if (song.paused || song.ended) {
+        lyricIndex++;
+
+        if (lyricIndex >= lyrics.length) {
+
+            stopLyrics();
+
             return;
         }
 
-        const currentTime = song.currentTime;
+        showLyric(lyrics[lyricIndex]);
 
-        while (
-            index + 1 < lyrics.length &&
-            currentTime >= lyrics[index + 1].time
-        ) {
-
-            index++;
-
-            showLyric(lyrics[index].text);
-        }
-
-    }, 20);
+    }, lyricSpeed);
 }
 
 
-// ==============================
-// STOP LYRIC SYNC
-// ==============================
+// ==========================================
+// STOP LYRICS
+// ==========================================
 
 function stopLyrics() {
 
@@ -170,12 +199,14 @@ function stopLyrics() {
 
         lyricTimer = null;
     }
+
+    lyricIndex = 0;
 }
 
 
-// ==============================
-// CALCULATE / PLAY SONG
-// ==============================
+// ==========================================
+// CALCULATE / START SONG
+// ==========================================
 
 function calculate() {
 
@@ -183,34 +214,38 @@ function calculate() {
         return;
     }
 
-    // Prevent incomplete calculations
+    // Don't start if expression ends with
+    // an operator.
     if (/[+\-*/%.]$/.test(current)) {
         return;
     }
 
+    // Show entered calculation.
     expression.textContent = `${current} =`;
 
-    // Instead of showing the answer
+    // We intentionally don't display the answer.
     result.textContent = "🎵";
 
-    // Animation
+    // Restart result animation.
     result.classList.remove("flash");
 
     void result.offsetWidth;
 
     result.classList.add("flash");
 
+    // Reset lyric display.
     lyric.textContent = "";
 
     status.textContent = "♪ Now playing";
 
-    // Restart song
+    // Restart audio.
+    song.pause();
     song.currentTime = 0;
 
-    // Start lyrics
+    // Start lyrics independently.
     startLyrics();
 
-    // Play audio
+    // Play song.
     if (!muted) {
 
         song.play().catch(() => {
@@ -219,13 +254,14 @@ function calculate() {
                 "♪ Press 🔊 to enable audio";
 
         });
+
     }
 }
 
 
-// ==============================
+// ==========================================
 // CALCULATOR BUTTONS
-// ==============================
+// ==========================================
 
 document.querySelectorAll(".key").forEach(button => {
 
@@ -251,12 +287,13 @@ document.querySelectorAll(".key").forEach(button => {
             add(value);
         }
     });
+
 });
 
 
-// ==============================
-// KEYBOARD
-// ==============================
+// ==========================================
+// KEYBOARD CONTROLS
+// ==========================================
 
 document.addEventListener("keydown", event => {
 
@@ -274,7 +311,7 @@ document.addEventListener("keydown", event => {
 
     }
 
-    // Enter / =
+    // Enter or =
     else if (
         event.key === "Enter" ||
         event.key === "="
@@ -300,9 +337,9 @@ document.addEventListener("keydown", event => {
 });
 
 
-// ==============================
+// ==========================================
 // SOUND BUTTON
-// ==============================
+// ==========================================
 
 soundBtn.addEventListener("click", () => {
 
@@ -311,6 +348,8 @@ soundBtn.addEventListener("click", () => {
     if (muted) {
 
         song.pause();
+
+        stopLyrics();
 
         soundBtn.textContent = "🔇";
 
@@ -324,27 +363,17 @@ soundBtn.addEventListener("click", () => {
 
             song.play().catch(() => {});
 
+            startLyrics();
+
             status.textContent = "♪ Now playing";
         }
     }
 });
 
 
-// ==============================
+// ==========================================
 // AUDIO EVENTS
-// ==============================
-
-song.addEventListener("play", () => {
-
-    startLyrics();
-});
-
-
-song.addEventListener("pause", () => {
-
-    stopLyrics();
-});
-
+// ==========================================
 
 song.addEventListener("ended", () => {
 
@@ -354,29 +383,23 @@ song.addEventListener("ended", () => {
 });
 
 
-// ==============================
-// SEEKING
-// ==============================
+// ==========================================
+// OPTIONAL: AUDIO ERROR
+// ==========================================
 
-song.addEventListener("seeked", () => {
+song.addEventListener("error", () => {
 
-    if (song.paused) {
-        return;
-    }
+    status.textContent =
+        "⚠ Unable to load song.mp3";
 
-    let currentIndex = 0;
+});
 
-    for (let i = 0; i < lyrics.length; i++) {
 
-        if (song.currentTime >= lyrics[i].time) {
+// ==========================================
+// INITIAL STATE
+// ==========================================
 
-            currentIndex = i;
-
-        } else {
-
-            break;
-        }
-    }
+updateDisplay();
 
     showLyric(lyrics[currentIndex].text);
 });
