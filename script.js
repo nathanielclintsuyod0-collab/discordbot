@@ -13,10 +13,10 @@ let lyricTimer = null;
 // Adjust the timestamps to match the exact timing of your audio.
 const lyrics = [
   { time: 0.0, text: "Tell me, why are we wasting time" },
-  { time: 4.0, text: "On all your wasted cryin'" },
-  { time: 8.0, text: "When you should be with me instead?" },
-  { time: 12.0, text: "I know I can treat you better" },
-  { time: 16.0, text: "Better than he can" }
+  { time: 2.5.0, text: "On all your wasted cryin'" },
+  { time: 5.0.0, text: "When you should be with me instead?" },
+  { time: 7.5.0, text: "I know I can treat you better" },
+  { time: 10.0, text: "Better than he can" }
 ];
 
 function updateDisplay() {
