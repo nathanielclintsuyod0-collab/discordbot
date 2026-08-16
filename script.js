@@ -1,405 +1,259 @@
-const result = document.getElementById("result");
-const expression = document.getElementById("expression");
-const lyric = document.getElementById("lyric");
-const status = document.getElementById("status");
-const song = document.getElementById("song");
-const soundBtn = document.getElementById("soundBtn");
+// BetterCalc - calculator + lyric player
 
-let current = "";
-let muted = false;
-let lyricTimer = null;
-let lyricIndex = 0;
+document.addEventListener("DOMContentLoaded", () => {
+    const result = document.getElementById("result");
+    const expression = document.getElementById("expression");
+    const lyric = document.getElementById("lyric");
+    const status = document.getElementById("status");
+    const song = document.getElementById("song");
+    const soundBtn = document.getElementById("soundBtn");
+    const buttons = document.querySelectorAll(".key");
 
-// ==========================================
-// LYRICS
-// ==========================================
-// These are the lyrics you provided.
-// The lyric speed is controlled separately
-// from the MP3 so you can make them move faster.
-const lyrics = [
-    "Tell me, why are we wasting time",
-    "On all your wasted cryin'",
-    "When you should be with me instead?",
-    "I know I can treat you better",
-    "Better than he can"
-];
+    let current = "";
+    let muted = false;
+    let lyricTimer = null;
+    let lyricIndex = 0;
 
-// ==========================================
-// LYRIC SPEED
-// ==========================================
-// Lower number = faster lyrics.
-//
-// 1000 = 1 second per line
-// 750  = 0.75 second per line
-// 500  = 0.5 second per line
-// 300  = 0.3 second per line
-// 200  = 0.2 second per line
-//
-// Change this value if you want them faster/slower.
-const lyricSpeed = 500;
+    // Lower number = faster lyric changes.
+    // 500 = one line every half second.
+    const lyricSpeed = 500;
 
+    const lyrics = [
+        "Tell me, why are we wasting time",
+        "On all your wasted cryin'",
+        "When you should be with me instead?",
+        "I know I can treat you better",
+        "Better than he can"
+    ];
 
-// ==========================================
-// CALCULATOR DISPLAY
-// ==========================================
+    function updateDisplay() {
+        result.textContent = current === "" ? "0" : current;
+    }
 
-function updateDisplay() {
-    result.textContent = current || "0";
-}
+    function add(value) {
+        const operators = "+-*/%";
 
-
-// ==========================================
-// ADD INPUT
-// ==========================================
-
-function add(value) {
-    const operators = "+-*/%";
-
-    if (operators.includes(value)) {
-
-        if (!current) {
-
-            if (value === "-") {
-                current = "-";
+        if (operators.indexOf(value) !== -1) {
+            if (current === "") {
+                if (value === "-") {
+                    current = "-";
+                } else {
+                    return;
+                }
             } else {
+                const last = current.charAt(current.length - 1);
+
+                if (operators.indexOf(last) !== -1) {
+                    current = current.slice(0, -1) + value;
+                } else {
+                    current += value;
+                }
+            }
+        } else if (value === ".") {
+            const parts = current.split(/[+\-*/%]/);
+            const lastNumber = parts[parts.length - 1];
+
+            if (lastNumber.indexOf(".") !== -1) {
                 return;
             }
 
-        } else if (operators.includes(current.slice(-1))) {
-
-            current = current.slice(0, -1) + value;
-
+            if (lastNumber === "") {
+                current += "0.";
+            } else {
+                current += ".";
+            }
         } else {
-
             current += value;
         }
 
-    } else if (value === ".") {
+        updateDisplay();
+    }
 
-        const lastNumber = current.split(/[+\-*/%]/).pop();
+    function deleteLast() {
+        current = current.slice(0, -1);
+        updateDisplay();
+    }
 
-        if (lastNumber.includes(".")) {
+    function stopLyrics() {
+        if (lyricTimer !== null) {
+            clearInterval(lyricTimer);
+            lyricTimer = null;
+        }
+
+        lyricIndex = 0;
+    }
+
+    function showLyric(text) {
+        lyric.textContent = text;
+
+        lyric.classList.remove("active");
+        void lyric.offsetWidth;
+        lyric.classList.add("active");
+    }
+
+    function startLyrics() {
+        stopLyrics();
+
+        if (lyrics.length === 0) {
             return;
         }
 
-        current += lastNumber ? "." : "0.";
+        lyricIndex = 0;
+        showLyric(lyrics[0]);
 
-    } else {
+        lyricTimer = setInterval(() => {
+            lyricIndex++;
 
-        current += value;
+            if (lyricIndex >= lyrics.length) {
+                stopLyrics();
+                return;
+            }
+
+            showLyric(lyrics[lyricIndex]);
+        }, lyricSpeed);
     }
 
-    updateDisplay();
-}
-
-
-// ==========================================
-// DELETE
-// ==========================================
-
-function deleteLast() {
-
-    current = current.slice(0, -1);
-
-    updateDisplay();
-}
-
-
-// ==========================================
-// CLEAR
-// ==========================================
-
-function clearCalculator() {
-
-    current = "";
-
-    expression.textContent = "";
-    lyric.textContent = "";
-    status.textContent = "";
-
-    stopLyrics();
-
-    song.pause();
-    song.currentTime = 0;
-
-    updateDisplay();
-}
-
-
-// ==========================================
-// LYRIC ANIMATION
-// ==========================================
-
-function showLyric(text) {
-
-    lyric.textContent = text;
-
-    lyric.classList.remove("active");
-
-    // Force browser to restart animation
-    void lyric.offsetWidth;
-
-    lyric.classList.add("active");
-}
-
-
-// ==========================================
-// START LYRICS
-// ==========================================
-
-function startLyrics() {
-
-    stopLyrics();
-
-    if (lyrics.length === 0) {
-        return;
-    }
-
-    lyricIndex = 0;
-
-    showLyric(lyrics[lyricIndex]);
-
-    /*
-        IMPORTANT:
-
-        This timer is completely independent
-        from song.currentTime.
-
-        This means changing lyricSpeed
-        actually changes how fast the lyrics
-        move.
-    */
-
-    lyricTimer = setInterval(() => {
-
-        lyricIndex++;
-
-        if (lyricIndex >= lyrics.length) {
-
-            stopLyrics();
-
-            return;
-        }
-
-        showLyric(lyrics[lyricIndex]);
-
-    }, lyricSpeed);
-}
-
-
-// ==========================================
-// STOP LYRICS
-// ==========================================
-
-function stopLyrics() {
-
-    if (lyricTimer !== null) {
-
-        clearInterval(lyricTimer);
-
-        lyricTimer = null;
-    }
-
-    lyricIndex = 0;
-}
-
-
-// ==========================================
-// CALCULATE / START SONG
-// ==========================================
-
-function calculate() {
-
-    if (!current) {
-        return;
-    }
-
-    // Don't start if expression ends with
-    // an operator.
-    if (/[+\-*/%.]$/.test(current)) {
-        return;
-    }
-
-    // Show entered calculation.
-    expression.textContent = `${current} =`;
-
-    // We intentionally don't display the answer.
-    result.textContent = "🎵";
-
-    // Restart result animation.
-    result.classList.remove("flash");
-
-    void result.offsetWidth;
-
-    result.classList.add("flash");
-
-    // Reset lyric display.
-    lyric.textContent = "";
-
-    status.textContent = "♪ Now playing";
-
-    // Restart audio.
-    song.pause();
-    song.currentTime = 0;
-
-    // Start lyrics independently.
-    startLyrics();
-
-    // Play song.
-    if (!muted) {
-
-        song.play().catch(() => {
-
-            status.textContent =
-                "♪ Press 🔊 to enable audio";
-
-        });
-
-    }
-}
-
-
-// ==========================================
-// CALCULATOR BUTTONS
-// ==========================================
-
-document.querySelectorAll(".key").forEach(button => {
-
-    button.addEventListener("click", () => {
-
-        const action = button.dataset.action;
-        const value = button.dataset.value;
-
-        if (action === "clear") {
-
-            clearCalculator();
-
-        } else if (action === "delete") {
-
-            deleteLast();
-
-        } else if (action === "equals") {
-
-            calculate();
-
-        } else {
-
-            add(value);
-        }
-    });
-
-});
-
-
-// ==========================================
-// KEYBOARD CONTROLS
-// ==========================================
-
-document.addEventListener("keydown", event => {
-
-    // Numbers
-    if (/^[0-9]$/.test(event.key)) {
-
-        add(event.key);
-
-    }
-
-    // Operators
-    else if ("+-*/%.".includes(event.key)) {
-
-        add(event.key);
-
-    }
-
-    // Enter or =
-    else if (
-        event.key === "Enter" ||
-        event.key === "="
-    ) {
-
-        event.preventDefault();
-
-        calculate();
-    }
-
-    // Backspace
-    else if (event.key === "Backspace") {
-
-        deleteLast();
-    }
-
-    // Escape
-    else if (event.key === "Escape") {
-
-        clearCalculator();
-    }
-
-});
-
-
-// ==========================================
-// SOUND BUTTON
-// ==========================================
-
-soundBtn.addEventListener("click", () => {
-
-    muted = !muted;
-
-    if (muted) {
-
-        song.pause();
+    function clearCalculator() {
+        current = "";
+
+        expression.textContent = "";
+        lyric.textContent = "";
+        status.textContent = "";
 
         stopLyrics();
 
-        soundBtn.textContent = "🔇";
+        song.pause();
+        song.currentTime = 0;
 
-        status.textContent = "♪ Muted";
+        updateDisplay();
+    }
 
-    } else {
+    function calculate() {
+        if (current === "") {
+            return;
+        }
 
-        soundBtn.textContent = "🔊";
+        // Don't start with an incomplete expression.
+        const last = current.charAt(current.length - 1);
 
-        if (expression.textContent) {
+        if ("+-*/%.".indexOf(last) !== -1) {
+            return;
+        }
 
-            song.play().catch(() => {});
+        expression.textContent = current + " =";
 
-            startLyrics();
+        // This calculator intentionally replaces the answer with the song.
+        result.textContent = "🎵";
 
-            status.textContent = "♪ Now playing";
+        result.classList.remove("flash");
+        void result.offsetWidth;
+        result.classList.add("flash");
+
+        lyric.textContent = "";
+        status.textContent = "♪ Now playing";
+
+        stopLyrics();
+
+        song.pause();
+        song.currentTime = 0;
+
+        startLyrics();
+
+        if (!muted) {
+            const playPromise = song.play();
+
+            if (playPromise !== undefined) {
+                playPromise.catch(() => {
+                    status.textContent = "♪ Press 🔊 to enable audio";
+                    stopLyrics();
+                });
+            }
         }
     }
-});
 
+    // Calculator buttons
+    buttons.forEach((button) => {
+        button.addEventListener("click", () => {
+            const action = button.getAttribute("data-action");
+            const value = button.getAttribute("data-value");
 
-// ==========================================
-// AUDIO EVENTS
-// ==========================================
+            if (action === "clear") {
+                clearCalculator();
+            } else if (action === "delete") {
+                deleteLast();
+            } else if (action === "equals") {
+                calculate();
+            } else if (value !== null) {
+                add(value);
+            }
+        });
+    });
 
-song.addEventListener("ended", () => {
+    // Keyboard controls
+    document.addEventListener("keydown", (event) => {
+        const key = event.key;
 
-    stopLyrics();
+        if (key >= "0" && key <= "9") {
+            add(key);
+            return;
+        }
 
-    status.textContent = "♪ Finished";
-});
+        if ("+-*/%.".indexOf(key) !== -1) {
+            add(key);
+            return;
+        }
 
+        if (key === "Enter" || key === "=") {
+            event.preventDefault();
+            calculate();
+            return;
+        }
 
-// ==========================================
-// OPTIONAL: AUDIO ERROR
-// ==========================================
+        if (key === "Backspace") {
+            event.preventDefault();
+            deleteLast();
+            return;
+        }
 
-song.addEventListener("error", () => {
+        if (key === "Escape") {
+            clearCalculator();
+        }
+    });
 
-    status.textContent =
-        "⚠ Unable to load song.mp3";
+    // Sound button
+    soundBtn.addEventListener("click", () => {
+        muted = !muted;
 
-});
+        if (muted) {
+            song.pause();
+            stopLyrics();
+            soundBtn.textContent = "🔇";
+            status.textContent = "♪ Muted";
+        } else {
+            soundBtn.textContent = "🔊";
 
+            if (expression.textContent !== "") {
+                song.play().then(() => {
+                    startLyrics();
+                    status.textContent = "♪ Now playing";
+                }).catch(() => {
+                    status.textContent = "♪ Unable to play audio";
+                });
+            }
+        }
+    });
 
-// ==========================================
-// INITIAL STATE
-// ==========================================
+    // Audio events
+    song.addEventListener("ended", () => {
+        stopLyrics();
+        status.textContent = "♪ Finished";
+    });
 
-updateDisplay();
+    song.addEventListener("error", () => {
+        stopLyrics();
+        status.textContent = "⚠ song.mp3 could not be loaded";
+    });
 
-    showLyric(lyrics[currentIndex].text);
+    // Initial display
+    updateDisplay();
 });
