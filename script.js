@@ -30,27 +30,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
         {
             text: "Tell me, why are we wasting time",
-            duration: 3000
+            duration: 2800
         },
 
         {
             text: "On all your wasted cryin'",
-            duration: 3000
+            duration: 2200
         },
 
         {
             text: "When you should be with me instead?",
-            duration: 3000
+            duration: 2600
         },
 
         {
             text: "I know I can treat you better",
-            duration: 3000
+            duration: 2300
         },
 
         {
             text: "Better than he can",
-            duration: 3000
+            duration: 1800
         }
 
     ];
